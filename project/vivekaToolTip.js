@@ -46,7 +46,6 @@
 			$top -= $tempHeight;
 
 			if(($exFrameArea - $domTotalWidth) < 0){
-				console.log('0 dan küçük' + ($exFrameArea - $domTotalWidth));
 				$left = $(element).offset().left - (settings.width - settings.left); 
 				$('figure.vivekaTooltip').css({width:settings.width});
 				$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
@@ -61,7 +60,6 @@
 		};
 	   	
 	   this.bind(settings.showType,function(){
-		   $('figure.vivekaTooltip').remove();
 		   $.domCreate(this);
 		   return false;
 	   });
