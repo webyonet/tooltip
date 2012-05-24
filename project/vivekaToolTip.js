@@ -19,53 +19,107 @@
 		$dom =  this.selector,
 		$top = 0,
 		$left = 0,
+		$tempHeight = 0,
+		$timeOut = 0,
 		$tempHeader = settings.header,
-		$tempText = createText(settings.text),
-		$tempHeight = 0;
-		
+		$tempText = createText(settings.text);
+	
 		$.jsonParse = function(data){
 			if(typeof data != "undefined"){
-				var json = $.parseJSON(data)
+				var json = $.parseJSON(data);
 				$tempHeader = json["data"].header;
 				$tempText = createText(json["data"].text);
 			}
 		};
-		
+
 		$.domCreate = function(element){
 			$.jsonParse($(element).attr('placeholder'));
-			$top = $(element).offset().top - settings.top;
-			$left = $(element).offset().left - settings.left;
-			var $crtDom = $('<figure class="vivekaTooltip"><figcaption>'+ $tempHeader +'</figcaption>'+ $tempText +'<span class="bullet"></span></figure>').hide(),
+			var $crtDom = $('<figure class="vivekaTooltip"><figcaption>'+ $tempHeader +'</figcaption>'+ $tempText +'<span class="bullet"></span></figure>').stop(true,true).fadeIn('fast'),
 			$exFrameLeft = $(settings.exFrame).offset().left,
 			$exFrameWidth = $(settings.exFrame).width(),
 			$exFrameArea = $exFrameLeft + $exFrameWidth,
-			$domTotalWidth = $(element).offset().left + settings.width;
+			$domTotalWidth = $(element).offset().left + settings.width,
+			$domPaddingL = parseInt($(element).css('padding-left')),
+			$domPaddingR = parseInt($(element).css('padding-right')),
+			$domPaddingT = parseInt($(element).css('padding-top')),
+			$domPaddingB = parseInt($(element).css('padding-bottom'));
+			
+			$top = $(element).offset().top - settings.top + $domPaddingT;
+			$left = $(element).offset().left - settings.left + $domPaddingL;
 			
 			$('body').append($crtDom);
 			$tempHeight = $('figure.vivekaTooltip').height();
 			$top -= $tempHeight;
 
 			if(($exFrameArea - $domTotalWidth) < 0){
-				$left = $(element).offset().left - (settings.width - settings.left); 
-				$('figure.vivekaTooltip').css({width:settings.width});
-				$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
-				$('figure.vivekaTooltip span.bullet').css({right:15});
-				$('figure.vivekaTooltip').fadeIn('fast').offset({top:$top,left:$left});
+				if($top < 0){
+					$left = $(element).offset().left - (settings.width - settings.left) + $domPaddingR; 
+					$top = $(element).offset().top + settings.top + $domPaddingT;
+					$('figure.vivekaTooltip').css({width:settings.width});
+					$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
+					$('figure.vivekaTooltip span.bullet').addClass('top').css({right:15,top:-8});
+					$('figure.vivekaTooltip').fadeIn('fast').offset({top:$top,left:$left});
+				}else{
+					$left = $(element).offset().left - (settings.width - settings.left) + $domPaddingR; 
+					$('figure.vivekaTooltip').css({width:settings.width});
+					$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
+					$('figure.vivekaTooltip span.bullet').css({right:15,bottom:-8});
+					$('figure.vivekaTooltip').fadeIn('fast').offset({top:$top,left:$left});
+				}
 			}else{
-				$('figure.vivekaTooltip').css({width:settings.width});
-				$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
-				$('figure.vivekaTooltip span.bullet').css({left:20});
-				$('figure.vivekaTooltip').fadeIn('fast').offset({top:$top,left:$left});
+				if($top < 0){
+					$top = $(element).offset().top + settings.top + $domPaddingT;
+					$('figure.vivekaTooltip').css({width:settings.width});
+					$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
+					$('figure.vivekaTooltip span.bullet').addClass('top').css({left:20,top:-8});
+					$('figure.vivekaTooltip').fadeIn('fast').offset({top:$top,left:$left});
+
+				}else{
+					$('figure.vivekaTooltip').css({width:settings.width});
+					$('figure.vivekaTooltip figcaption, p.paragraph').css({width:settings.width - 20});
+					$('figure.vivekaTooltip span.bullet').css({left:20,bottom:-8});
+					$('figure.vivekaTooltip').fadeIn('fast').offset({top:$top,left:$left});
+				}
 			}
 		};
 	   	
+		$.close = function(){
+			
+		$timeOut = setTimeout(function(){
+				$('figure.vivekaTooltip').fadeOut('fast',function(){$(this).remove();});
+			},300);
+			
+			
+		};
+		
+		$('figure.vivekaTooltip').live('mouseenter',function(){
+			clearTimeout($timeOut);
+			$('figure.vivekaTooltip').stop(true,true).fadeIn('fast');
+		});
+		
+		$('figure.vivekaTooltip').live('mouseleave',function(){
+			 $('figure.vivekaTooltip').fadeOut('fast',function(){$(this).remove();});
+		});
+		
+		$.control = function(event){
+			if($('figure.vivekaTooltip').length > 0){
+			   $('figure.vivekaTooltip').stop(false,false).css({'opacity':'1'});
+		   }else{
+		   $('figure.vivekaTooltip').remove();
+		   $.domCreate(event);
+		   }
+		};
+		
 	   this.bind(settings.showType,function(){
-		   $.domCreate(this);
+		   $.control(this);
+	   });
+	   
+	   this.click(settings.showType,function(){
 		   return false;
 	   });
 	   
 	   this.bind('mouseleave',function(){
-		   $('figure.vivekaTooltip').remove();
+		   $.close();
 	   });
 	   
 	   function createText(text) {
@@ -83,7 +137,5 @@
 			return returnText;
 		  }
 	  };
-	  
-	 return false; 
-	}
+	};
 })(jQuery);
