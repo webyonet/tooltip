@@ -1,14 +1,15 @@
 /*
- * vivekaToolTip jQuery Plugin v1.2.4.1
+ * vivekaToolTip jQuery Plugin v1.3.0.1
  * Licensed under the MIT license.
  * Copyright 2012 G.Burak Demirezen
- */ (function ($) {
+ */ 
+(function ($) {
     $.fn.toolTip = function (options) {
         var defaults = {
             header: 'Genel İngilizce Kelime Seti',
             text: 'Açıklama metinleri',
             top: 20,
-            left: 23,
+            left: 20,
             showType: 'mouseenter',
             width: 300,
             exFrame: '.content'
@@ -21,7 +22,8 @@
             $tempHeight = 0,
             $timeOut = 0,
             $tempHeader = settings.header,
-            $tempText = createText(settings.text);
+            $tempText = createText(settings.text),
+			$control = null;
 			
         $.jsonParse = function (data) {
             if (typeof data != "undefined") {
@@ -41,11 +43,12 @@
                 $domPaddingL = parseInt($(element).css('padding-left')),
                 $domPaddingR = parseInt($(element).css('padding-right')),
                 $domPaddingT = parseInt($(element).css('padding-top')),
-                $domPaddingB = parseInt($(element).css('padding-bottom'));
-
+                $domPaddingB = parseInt($(element).css('padding-bottom')),
+				$width = parseInt($(element).css('width')) / 2;
+			
             $top = $(element).offset().top - settings.top + $domPaddingT;
-            $left = $(element).offset().left - settings.left + $domPaddingL;
-
+            $left = $(element).offset().left - settings.left + $domPaddingL + $width - 6;
+			
             $('body').append($crtDom);
             $tempHeight = $('figure.vivekaTooltip').height();
             $top -= $tempHeight;
@@ -54,8 +57,9 @@
 
             if (($exFrameArea - $domTotalWidth) < 0) {
                 if ($top < 0) {
-                    $left = $(element).offset().left - (settings.width - settings.left) + $domPaddingR;
+                    $left = $(element).offset().left - (settings.width - settings.left) + $domPaddingR + $width + 1;
                     $top = $(element).offset().top + settings.top + $domPaddingT;
+					
                     $toolTipElement.css({
                         width: settings.width
                     });
@@ -71,7 +75,7 @@
                         left: $left
                     });
                 } else {
-                    $left = $(element).offset().left - (settings.width - settings.left) + $domPaddingR;
+                    $left = $(element).offset().left - (settings.width - settings.left) + $domPaddingR + $width + 1;
                     $toolTipElement.css({
                         width: settings.width
                     });
@@ -87,7 +91,7 @@
                         left: $left
                     });
                 }
-            } else {
+            } else {				
                 if ($top < 0) {
                     $top = $(element).offset().top + settings.top + $domPaddingT;
                     $toolTipElement.css({
@@ -155,7 +159,14 @@
         };
 
         this.bind(settings.showType, function () {
-            $.control(this);
+			if($control == null || $control != this){
+				$control = this;
+				clearTimeout($timeOut);
+				$('figure.vivekaTooltip').remove();
+				$.control(this);
+			}else{
+				$.control(this);
+			}
         });
 
         this.click(settings.showType, function () {
